@@ -1,0 +1,15 @@
+{
+  "name": "yap",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "say": "bun run ./src/index.ts --",
+    "compile": "bun build ./src/index.ts --compile --minify --sourcemap --outfile yap && chmod +x ./yap"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
