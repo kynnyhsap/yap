@@ -158,8 +158,8 @@ export async function runCli(argv: string[]) {
 
   cli
     .command("[...text]", "text to speak")
-    .example('yap "nah it\'s GGs"')
-    .example("yap nah its ggs")
+    .example('yap "You are absolutelly right!"')
+    .example("yap you are absolultely right!")
     .example('yap "fast mode" -m eleven_flash_v2_5')
     .example('yap "use custom key" -k elv_xxx')
     .example('yap "use custom key" --api-key elv_xxx')

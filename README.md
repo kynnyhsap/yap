@@ -13,12 +13,14 @@ export ELEVENLABS_API_KEY=your_api_key_here
 ## Usage
 
 ```bash
-yap "hello from yap"
-yap --model eleven_flash_v2_5 "low-latency speech"
-yap -m eleven_multilingual_v2 "high-quality speech"
-yap --api-key elv_xxx "use custom key"
-yap -i JBFqnCBsd6RMkjVDRZzb "use custom voice"
-yap -p ffplay "force a specific player"
+yap "You are absolutelly right!"
+yap you are absolultely right!
+yap "low-latency speech" -m eleven_flash_v2_5
+yap "high-quality speech" -m eleven_multilingual_v2
+yap "use custom key" --api-key elv_xxx
+yap "use custom voice" -i JBFqnCBsd6RMkjVDRZzb
+yap "force a specific player" -p ffplay
+yap "use custom key" -k elv_xxx
 yap --version
 yap --players
 yap --verbose "show playback report"
@@ -38,6 +40,8 @@ Supported players:
 - `mpg123` (lightweight)
 
 `--verbose` prints a playback report with model, voice, player, latency, total time, text length, estimated cost (credits), and bytes streamed.
+
+Version: `yap@1.0.0` (`-v` / `--version`)
 
 Supported TTS models:
 
