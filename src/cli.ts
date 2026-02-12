@@ -23,17 +23,19 @@ import {
   playAudioStream,
 } from "./players";
 
+const CLI_VERSION = "1.0.0";
+
 function formatModelsForHelp() {
   return TTS_MODELS.map(
     (model) => `${COLOR_MODEL(model)} ${COLOR_META(`(${MODEL_DESCRIPTIONS[model]})`)}`,
-  ).join("\n");
+  ).join("\n  ");
 }
 
 function formatPlayersForHelp() {
   return PLAYER_NAMES.map((name) => {
     const definition = PLAYER_DEFINITIONS[name];
     return `${COLOR_MODEL(name)} ${COLOR_META(`(${definition.description})`)}`;
-  }).join("\n");
+  }).join("\n  ");
 }
 
 function printPlayers() {
@@ -137,18 +139,19 @@ export async function runCli(argv: string[]) {
     .option("-p, --player <player>", `Audio player backend (${PLAYER_NAMES.join(", ")})`)
     .option("--players", "List players available on this system")
     .option("-k, --key <apiKey>", "ElevenLabs API key override")
-    .option("-v, --voice <voiceId>", `ElevenLabs voice ID (default: ${DEFAULT_VOICE_ID})`)
+    .option("-i, --voice <voiceId>", `ElevenLabs voice ID (default: ${DEFAULT_VOICE_ID})`)
+    .option("-v, --version", "Display version number")
     .option("--verbose", "Show playback and latency details")
     .help((sections) => {
       return [
         ...sections,
         {
           title: COLOR_HEADING("Available models"),
-          body: formatModelsForHelp(),
+          body: `  ${formatModelsForHelp()}`,
         },
         {
           title: COLOR_HEADING("Supported players"),
-          body: formatPlayersForHelp(),
+          body: `  ${formatPlayersForHelp()}`,
         },
       ];
     });
@@ -156,10 +159,12 @@ export async function runCli(argv: string[]) {
   cli
     .command("[...text]", "text to speak")
     .example('yap "nah it\'s GGs"')
-    .example('yap -m eleven_flash_v2_5 "fast mode"')
-    .example('yap -k elv_xxx "use custom key"')
-    .example('yap -v JBFqnCBsd6RMkjVDRZzb "custom voice"')
-    .example('yap -p ffplay "force player"')
+    .example("yap nah its ggs")
+    .example('yap "fast mode" -m eleven_flash_v2_5')
+    .example('yap "use custom key" -k elv_xxx')
+    .example('yap "custom voice" -i JBFqnCBsd6RMkjVDRZzb')
+    .example('yap "force player" -p ffplay')
+    .example("yap --version")
     .example("yap --players")
     .action(async (text: string[] = [], options: Record<string, unknown>) => {
       if (options.players) {
@@ -218,7 +223,14 @@ export async function runCli(argv: string[]) {
     });
 
   try {
-    cli.parse(argv, { run: false });
+    const parsed = cli.parse(argv, { run: false });
+    if (parsed.options.help || parsed.options.version) {
+      if (parsed.options.version) {
+        console.log(`yap/${CLI_VERSION}`);
+      }
+      return;
+    }
+
     await cli.runMatchedCommand();
   } catch (error) {
     if (error instanceof Error) {

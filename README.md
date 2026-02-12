@@ -17,8 +17,9 @@ yap "hello from yap"
 yap --model eleven_flash_v2_5 "low-latency speech"
 yap -m eleven_multilingual_v2 "high-quality speech"
 yap -k elv_xxx "use custom key"
-yap -v JBFqnCBsd6RMkjVDRZzb "use custom voice"
+yap -i JBFqnCBsd6RMkjVDRZzb "use custom voice"
 yap -p ffplay "force a specific player"
+yap --version
 yap --players
 yap --verbose "show playback report"
 yap --help
