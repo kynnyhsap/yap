@@ -18,10 +18,25 @@ yap --model eleven_flash_v2_5 "low-latency speech"
 yap -m eleven_multilingual_v2 "high-quality speech"
 yap -k elv_xxx "use custom key"
 yap -v JBFqnCBsd6RMkjVDRZzb "use custom voice"
+yap -p ffplay "force a specific player"
+yap --players
+yap --verbose "show playback report"
 yap --help
 ```
 
 Default model: `eleven_turbo_v2_5`
+
+Default player selection order: `mpv` -> `ffplay` -> `cvlc` -> `mplayer` -> `mpg123`
+
+Supported players:
+
+- `mpv` (recommended)
+- `ffplay` (fallback)
+- `cvlc` (vlc)
+- `mplayer` (legacy)
+- `mpg123` (lightweight)
+
+`--verbose` prints a playback report with model, voice, player, latency, total time, text length, estimated cost (credits), and bytes streamed.
 
 Supported TTS models:
 
