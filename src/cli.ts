@@ -1,4 +1,4 @@
-import { Command, CommanderError, Option } from "commander";
+import { goke } from "goke";
 import {
   COLOR_BAD,
   COLOR_COMMAND,
@@ -26,14 +26,14 @@ import {
 function formatModelsForHelp() {
   return TTS_MODELS.map(
     (model) => `${COLOR_MODEL(model)} ${COLOR_META(`(${MODEL_DESCRIPTIONS[model]})`)}`,
-  ).join("\n  ");
+  ).join("\n");
 }
 
 function formatPlayersForHelp() {
   return PLAYER_NAMES.map((name) => {
     const definition = PLAYER_DEFINITIONS[name];
     return `${COLOR_MODEL(name)} ${COLOR_META(`(${definition.description})`)}`;
-  }).join("\n  ");
+  }).join("\n");
 }
 
 function printPlayers() {
@@ -119,105 +119,108 @@ function extractCost(headers: Headers) {
 }
 
 export async function runCli(argv: string[]) {
-  const program = new Command()
-    .name("yap")
-    .description("CLI to yap in the terminal with ElevenLabs TTS")
-    .configureOutput({
-      writeOut: (str) => {
-        process.stdout.write(colorizeHelp(str));
+  const cli = goke("yap", {
+    stdout: {
+      write(data) {
+        process.stdout.write(colorizeHelp(data));
       },
-      writeErr: (str) => {
-        process.stderr.write(colorizeHelp(str));
+    },
+    stderr: {
+      write(data) {
+        process.stderr.write(colorizeHelp(data));
       },
-    })
-    .configureHelp({
-      sortOptions: true,
-    })
-    .addOption(
-      new Option("-m, --model <model>", "TTS model to use").default(DEFAULT_MODEL),
-    )
-    .addOption(
-      new Option("-p, --player <player>", "Audio player backend").choices([
-        ...PLAYER_NAMES,
-      ]),
-    )
+    },
+  });
+
+  cli
+    .option("-m, --model <model>", `TTS model to use (default: ${DEFAULT_MODEL})`)
+    .option("-p, --player <player>", `Audio player backend (${PLAYER_NAMES.join(", ")})`)
     .option("--players", "List players available on this system")
     .option("-k, --key <apiKey>", "ElevenLabs API key override")
-    .option("-v, --voice <voiceId>", "ElevenLabs voice ID", DEFAULT_VOICE_ID)
+    .option("-v, --voice <voiceId>", `ElevenLabs voice ID (default: ${DEFAULT_VOICE_ID})`)
     .option("--verbose", "Show playback and latency details")
-    .argument("[text...]", "text to speak")
-    .addHelpText(
-      "after",
-      `\n${COLOR_HEADING("Examples")}:\n  ${COLOR_COMMAND('yap "nah it\'s GGs"')}\n  ${COLOR_COMMAND('yap -m eleven_flash_v2_5 "fast mode"')}\n  ${COLOR_COMMAND('yap -k elv_xxx "use custom key"')}\n  ${COLOR_COMMAND('yap -v JBFqnCBsd6RMkjVDRZzb "custom voice"')}\n  ${COLOR_COMMAND('yap -p ffplay "force player"')}\n  ${COLOR_COMMAND("yap --players")}\n\n${COLOR_HEADING("Available models")}:\n  ${formatModelsForHelp()}\n\n${COLOR_HEADING("Supported players")}:\n  ${formatPlayersForHelp()}`,
-    )
-    .showHelpAfterError('(add "--help" for usage)')
-    .action(
-      async (
-        text: string[],
-        options: {
-          model: string;
-          key?: string;
-          voice: string;
-          verbose?: boolean;
-          players?: boolean;
-          player?: string;
+    .help((sections) => {
+      return [
+        ...sections,
+        {
+          title: COLOR_HEADING("Available models"),
+          body: formatModelsForHelp(),
         },
-      ) => {
-        if (options.players) {
-          printPlayers();
-          return;
-        }
+        {
+          title: COLOR_HEADING("Supported players"),
+          body: formatPlayersForHelp(),
+        },
+      ];
+    });
 
-        if (!text || text.length === 0) {
-          throw new Error("No text provided. Pass text or run --players.");
-        }
+  cli
+    .command("[...text]", "text to speak")
+    .example('yap "nah it\'s GGs"')
+    .example('yap -m eleven_flash_v2_5 "fast mode"')
+    .example('yap -k elv_xxx "use custom key"')
+    .example('yap -v JBFqnCBsd6RMkjVDRZzb "custom voice"')
+    .example('yap -p ffplay "force player"')
+    .example("yap --players")
+    .action(async (text: string[] = [], options: Record<string, unknown>) => {
+      if (options.players) {
+        printPlayers();
+        return;
+      }
 
-        if (!isTtsModel(options.model)) {
-          throw new Error(
-            `Unsupported model: ${options.model}. Run --help to see available models.`,
-          );
-        }
+      if (!text || text.length === 0) {
+        throw new Error("No text provided. Pass text or run --players.");
+      }
 
-        const startedAt = performance.now();
-        const joinedText = text.join(" ").trim();
+      const model = String(options.model ?? DEFAULT_MODEL);
+      if (!isTtsModel(model)) {
+        throw new Error(`Unsupported model: ${model}. Run --help to see available models.`);
+      }
 
-        const { stream, headers } = await ttsStream({
-          text: joinedText,
-          model: options.model as TtsModel,
-          customApiKey: options.key,
-          voiceId: options.voice,
+      const player = options.player ? String(options.player) : undefined;
+      if (player && !PLAYER_NAMES.includes(player as (typeof PLAYER_NAMES)[number])) {
+        throw new Error(
+          `Unsupported player: ${player}. Run --players to see supported players.`,
+        );
+      }
+
+      const voice = String(options.voice ?? DEFAULT_VOICE_ID);
+      const key = options.key ? String(options.key) : undefined;
+      const verbose = Boolean(options.verbose);
+
+      const startedAt = performance.now();
+      const joinedText = text.join(" ").trim();
+
+      const { stream, headers } = await ttsStream({
+        text: joinedText,
+        model,
+        customApiKey: key,
+        voiceId: voice,
+      });
+
+      const result = await playAudioStream(stream, {
+        player,
+        startedAt,
+      });
+
+      if (verbose) {
+        const ttfb = result.ttfbMs === undefined ? "n/a" : `${result.ttfbMs.toFixed(1)}ms`;
+        printVerboseReport({
+          model,
+          voice,
+          player: result.player,
+          latency: ttfb,
+          total: `${result.totalMs.toFixed(1)}ms`,
+          bytes: result.bytes,
+          textLength: joinedText.length,
+          cost: extractCost(headers),
         });
-
-        const result = await playAudioStream(stream, {
-          player: options.player,
-          startedAt,
-        });
-
-        if (options.verbose) {
-          const ttfb = result.ttfbMs === undefined ? "n/a" : `${result.ttfbMs.toFixed(1)}ms`;
-          printVerboseReport({
-            model: options.model,
-            voice: options.voice,
-            player: result.player,
-            latency: ttfb,
-            total: `${result.totalMs.toFixed(1)}ms`,
-            bytes: result.bytes,
-            textLength: joinedText.length,
-            cost: extractCost(headers),
-          });
-        }
-      },
-    );
-
-  program.exitOverride();
+      }
+    });
 
   try {
-    await program.parseAsync(argv);
+    cli.parse(argv, { run: false });
+    await cli.runMatchedCommand();
   } catch (error) {
-    if (error instanceof CommanderError) {
-      process.exit(error.exitCode);
-    }
-
     if (error instanceof Error) {
       console.error(error.message);
       process.exit(1);
