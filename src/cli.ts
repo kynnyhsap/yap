@@ -138,7 +138,7 @@ export async function runCli(argv: string[]) {
     .option("-m, --model <model>", `TTS model to use (default: ${DEFAULT_MODEL})`)
     .option("-p, --player <player>", `Audio player backend (${PLAYER_NAMES.join(", ")})`)
     .option("--players", "List players available on this system")
-    .option("-k, --key <apiKey>", "ElevenLabs API key override")
+    .option("-k, --api-key <apiKey>", "ElevenLabs API key override")
     .option("-i, --voice <voiceId>", `ElevenLabs voice ID (default: ${DEFAULT_VOICE_ID})`)
     .option("-v, --version", "Display version number")
     .option("--verbose", "Show playback and latency details")
@@ -162,6 +162,7 @@ export async function runCli(argv: string[]) {
     .example("yap nah its ggs")
     .example('yap "fast mode" -m eleven_flash_v2_5')
     .example('yap "use custom key" -k elv_xxx')
+    .example('yap "use custom key" --api-key elv_xxx')
     .example('yap "custom voice" -i JBFqnCBsd6RMkjVDRZzb')
     .example('yap "force player" -p ffplay')
     .example("yap --version")
@@ -189,7 +190,7 @@ export async function runCli(argv: string[]) {
       }
 
       const voice = String(options.voice ?? DEFAULT_VOICE_ID);
-      const key = options.key ? String(options.key) : undefined;
+      const key = options.apiKey ? String(options.apiKey) : undefined;
       const verbose = Boolean(options.verbose);
 
       const startedAt = performance.now();

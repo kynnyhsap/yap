@@ -16,7 +16,7 @@ export ELEVENLABS_API_KEY=your_api_key_here
 yap "hello from yap"
 yap --model eleven_flash_v2_5 "low-latency speech"
 yap -m eleven_multilingual_v2 "high-quality speech"
-yap -k elv_xxx "use custom key"
+yap --api-key elv_xxx "use custom key"
 yap -i JBFqnCBsd6RMkjVDRZzb "use custom voice"
 yap -p ffplay "force a specific player"
 yap --version
