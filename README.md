@@ -21,9 +21,10 @@ yap "use custom key" --api-key elv_xxx
 yap "use custom voice" -i JBFqnCBsd6RMkjVDRZzb
 yap "force a specific player" -p ffplay
 yap "use custom key" -k elv_xxx
+yap "test" --report
 yap --version
 yap --players
-yap --verbose "show playback report"
+yap --report "show playback report"
 yap --help
 ```
 
@@ -39,7 +40,7 @@ Supported players:
 - `mplayer` (legacy)
 - `mpg123` (lightweight)
 
-`--verbose` prints a playback report with model, voice, player, latency, total time, text length, estimated cost (credits), and bytes streamed.
+`--report` prints a playback report with model, voice, player, latency, total time, text length, estimated cost (credits), and bytes streamed (`--verbose` is supported as an alias).
 
 Version: `yap@1.0.0` (`-v` / `--version`)
 

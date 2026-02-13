@@ -157,7 +157,8 @@ export async function runCli(argv: string[]) {
     .option("-k, --api-key <apiKey>", "ElevenLabs API key override")
     .option("-i, --voice <voiceId>", `ElevenLabs voice ID (default: ${DEFAULT_VOICE_ID})`)
     .option("-v, --version", "Display version number")
-    .option("--verbose", "Show playback and latency details")
+    .option("-r, --report", "Show playback report")
+    .option("--verbose", "Alias for --report")
     .help((sections) => {
       return [
         ...sections,
@@ -181,6 +182,7 @@ export async function runCli(argv: string[]) {
     .example('yap "use custom key" --api-key elv_xxx')
     .example('yap "custom voice" -i JBFqnCBsd6RMkjVDRZzb')
     .example('yap "force player" -p ffplay')
+    .example('yap "test" --report')
     .example("yap --version")
     .example("yap --players")
     .action(async (text: string[] = [], options: Record<string, unknown>) => {
@@ -207,7 +209,7 @@ export async function runCli(argv: string[]) {
 
       const voice = String(options.voice ?? DEFAULT_VOICE_ID);
       const key = options.apiKey ? String(options.apiKey) : undefined;
-      const verbose = Boolean(options.verbose);
+      const report = Boolean(options.report || options.verbose);
 
       const startedAt = performance.now();
       const joinedText = text.join(" ").trim();
@@ -224,7 +226,7 @@ export async function runCli(argv: string[]) {
         startedAt,
       });
 
-      if (verbose) {
+      if (report) {
         const ttfb = result.ttfbMs === undefined ? "n/a" : `${result.ttfbMs.toFixed(1)}ms`;
         printVerboseReport({
           model,
