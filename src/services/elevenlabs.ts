@@ -1,5 +1,6 @@
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 import type { TtsModel } from "../config/models";
+import type { Logger } from "../logging";
 
 const DEFAULT_VOICE_ID = "pNInz6obpgDQGcFmaJgB";
 
@@ -28,8 +29,9 @@ export async function ttsStream(options: {
   model: TtsModel;
   customApiKey?: string;
   voiceId?: string;
+  logger: Logger;
 }) {
-  const { text, model, customApiKey, voiceId = DEFAULT_VOICE_ID } = options;
+  const { text, model, customApiKey, voiceId = DEFAULT_VOICE_ID, logger } = options;
 
   const request = {
     modelId: model,
@@ -37,8 +39,16 @@ export async function ttsStream(options: {
     ...(model === "eleven_v3" ? {} : { optimizeStreamingLatency: 1 }),
   };
 
+  logger.debug(
+    `request: model=${model} voice=${voiceId} text_length=${text.length} optimize_latency=${model === "eleven_v3" ? "off" : "on"}`,
+  );
+
   const response = getClient(customApiKey).textToSpeech.stream(voiceId, request);
   const { data, rawResponse } = await response.withRawResponse();
+
+  logger.debug(
+    `response: status=${rawResponse.status} concurrent=${rawResponse.headers.get("current-concurrent-requests") ?? "n/a"}/${rawResponse.headers.get("maximum-concurrent-requests") ?? "n/a"}`,
+  );
 
   return {
     stream: data,

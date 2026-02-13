@@ -13,8 +13,8 @@ export ELEVENLABS_API_KEY=your_api_key_here
 ## Usage
 
 ```bash
-yap "You are absolutelly right!"
-yap you are absolultely right!
+yap "i am tired boss"
+yap i am tired boss
 yap "low-latency speech" -m eleven_flash_v2_5
 yap "high-quality speech" -m eleven_multilingual_v2
 yap "use custom key" --api-key elv_xxx
@@ -22,6 +22,7 @@ yap "use custom voice" -i JBFqnCBsd6RMkjVDRZzb
 yap "force a specific player" -p ffplay
 yap "use custom key" -k elv_xxx
 yap "test" --report
+yap "test" --debug
 yap --version
 yap --players
 yap --report "show playback report"
@@ -40,7 +41,9 @@ Supported players:
 - `mplayer` (legacy)
 - `mpg123` (lightweight)
 
-`--report` prints a playback report with model, voice, player, latency, total time, text length, estimated cost (credits), and bytes streamed (`--verbose` is supported as an alias).
+`--report` prints a playback report with model, voice, player, TTFB, total time, text length, estimated cost (credits), and bytes streamed (`--verbose` is supported as an alias).
+
+`--debug` prints request and streaming diagnostics (selected player, request info, first chunk timing, and stream completion stats).
 
 Version: `yap@1.0.0` (`-v` / `--version`)
 

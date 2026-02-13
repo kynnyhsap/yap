@@ -1,4 +1,5 @@
 import { spawn } from "bun";
+import type { Logger } from "../logging";
 
 export interface PlayerAdapter {
   description: string;
@@ -96,10 +97,14 @@ export function resolvePlayer(explicitPlayer?: string) {
 
 export async function playAudioStream(
   stream: ReadableStream<Uint8Array>,
-  options?: { player?: string; startedAt?: number },
+  options: { player?: string; startedAt?: number; logger: Logger },
 ) {
   const startedAt = options?.startedAt ?? performance.now();
   const player = resolvePlayer(options?.player);
+  options.logger.debug(
+    `player: selected=${player.name} command=${player.command} args=${player.args.join(" ")}`,
+  );
+
   const playerProcess = spawn([player.command, ...player.args], {
     stdin: "pipe",
     stderr: "ignore",
@@ -111,6 +116,7 @@ export async function playAudioStream(
   for await (const chunk of stream) {
     if (ttfbMs === undefined) {
       ttfbMs = performance.now() - startedAt;
+      options.logger.debug(`stream: first_chunk ttfb=${ttfbMs.toFixed(1)}ms`);
     }
 
     bytes += chunk.byteLength;
@@ -125,6 +131,9 @@ export async function playAudioStream(
   }
 
   const totalMs = performance.now() - startedAt;
+  options.logger.debug(
+    `stream: finished total=${totalMs.toFixed(1)}ms bytes=${bytes} exit=${exitCode}`,
+  );
 
   return {
     player: player.name,

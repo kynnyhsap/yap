@@ -22,6 +22,7 @@ import {
   PLAYER_NAMES,
   playAudioStream,
 } from "./players";
+import { createLogger } from "./logging";
 
 const CLI_VERSION = "1.0.0";
 
@@ -70,7 +71,7 @@ function printVerboseReport(data: {
   model: TtsModel;
   voice: string;
   player: string;
-  latency: string;
+  ttfb: string;
   total: string;
   bytes: number;
   textLength: number;
@@ -83,7 +84,7 @@ function printVerboseReport(data: {
   console.log(`  ${label("model")} ${COLOR_MODEL(data.model)} ${COLOR_META(`(${MODEL_DESCRIPTIONS[data.model]})`)}`);
   console.log(`  ${label("voice")} ${COLOR_MODEL(data.voice)}`);
   console.log(`  ${label("player")} ${COLOR_MODEL(data.player)}`);
-  console.log(`  ${label("latency")} ${COLOR_MODEL(data.latency)}`);
+  console.log(`  ${label("ttfb")} ${COLOR_MODEL(data.ttfb)}`);
   console.log(`  ${label("total")} ${COLOR_MODEL(data.total)}`);
   console.log(`  ${label("length")} ${COLOR_MODEL(String(data.textLength))}`);
   console.log(`  ${label("cost")} ${COLOR_MODEL(data.cost)}`);
@@ -158,6 +159,7 @@ export async function runCli(argv: string[]) {
     .option("-i, --voice <voiceId>", `ElevenLabs voice ID (default: ${DEFAULT_VOICE_ID})`)
     .option("-v, --version", "Display version number")
     .option("-r, --report", "Show playback report")
+    .option("-d, --debug", "Show debug logs")
     .option("--verbose", "Alias for --report")
     .help((sections) => {
       return [
@@ -175,14 +177,15 @@ export async function runCli(argv: string[]) {
 
   cli
     .command("[...text]", "text to speak")
-    .example('yap "You are absolutelly right!"')
-    .example("yap you are absolultely right!")
+    .example('yap "i am tired boss"')
+    .example("yap i am tired boss")
     .example('yap "fast mode" -m eleven_flash_v2_5')
     .example('yap "use custom key" -k elv_xxx')
     .example('yap "use custom key" --api-key elv_xxx')
     .example('yap "custom voice" -i JBFqnCBsd6RMkjVDRZzb')
     .example('yap "force player" -p ffplay')
     .example('yap "test" --report')
+    .example('yap "test" --debug')
     .example("yap --version")
     .example("yap --players")
     .action(async (text: string[] = [], options: Record<string, unknown>) => {
@@ -210,6 +213,12 @@ export async function runCli(argv: string[]) {
       const voice = String(options.voice ?? DEFAULT_VOICE_ID);
       const key = options.apiKey ? String(options.apiKey) : undefined;
       const report = Boolean(options.report || options.verbose);
+      const debug = Boolean(options.debug);
+      const logger = createLogger(debug);
+
+      logger.debug(
+        `input: model=${model} voice=${voice} player=${player ?? "auto"} text_length=${text.join(" ").trim().length}`,
+      );
 
       const startedAt = performance.now();
       const joinedText = text.join(" ").trim();
@@ -219,11 +228,13 @@ export async function runCli(argv: string[]) {
         model,
         customApiKey: key,
         voiceId: voice,
+        logger,
       });
 
       const result = await playAudioStream(stream, {
         player,
         startedAt,
+        logger,
       });
 
       if (report) {
@@ -232,7 +243,7 @@ export async function runCli(argv: string[]) {
           model,
           voice,
           player: result.player,
-          latency: ttfb,
+          ttfb,
           total: `${result.totalMs.toFixed(1)}ms`,
           bytes: result.bytes,
           textLength: joinedText.length,
