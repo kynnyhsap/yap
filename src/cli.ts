@@ -26,15 +26,31 @@ import {
 const CLI_VERSION = "1.0.0";
 
 function formatModelsForHelp() {
-  return TTS_MODELS.map(
-    (model) => `${COLOR_MODEL(model)} ${COLOR_META(`(${MODEL_DESCRIPTIONS[model]})`)}`,
+  const orderedModels = [
+    DEFAULT_MODEL,
+    ...TTS_MODELS.filter((model) => model !== DEFAULT_MODEL),
+  ];
+
+  const maxModelLength = Math.max(...orderedModels.map((model) => model.length));
+
+  return orderedModels.map(
+    (model) => {
+      const paddedModel = model.padEnd(maxModelLength);
+
+      return `${COLOR_MODEL(paddedModel)} ${COLOR_META(`(${MODEL_DESCRIPTIONS[model]})`)}${
+        model === DEFAULT_MODEL ? ` ${COLOR_GOOD("[default]")}` : ""
+      }`;
+    },
   ).join("\n  ");
 }
 
 function formatPlayersForHelp() {
+  const maxPlayerLength = Math.max(...PLAYER_NAMES.map((name) => name.length));
+
   return PLAYER_NAMES.map((name) => {
     const definition = PLAYER_DEFINITIONS[name];
-    return `${COLOR_MODEL(name)} ${COLOR_META(`(${definition.description})`)}`;
+    const paddedName = name.padEnd(maxPlayerLength);
+    return `${COLOR_MODEL(paddedName)} ${COLOR_META(`(${definition.description})`)}`;
   }).join("\n  ");
 }
 
