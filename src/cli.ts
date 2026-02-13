@@ -121,6 +121,10 @@ function extractCost(headers: Headers) {
   return `${rawCost} credits`
 }
 
+function optionAsString(value: unknown) {
+  return typeof value === 'string' ? value : undefined
+}
+
 async function resolveInputText(text: string[]) {
   const fromArgs = text.join(' ').trim()
   if (fromArgs.length > 0) {
@@ -197,18 +201,18 @@ export async function runCli(argv: string[]) {
 
       const joinedText = await resolveInputText(text)
 
-      const model = String(options.model ?? DEFAULT_MODEL)
+      const model = optionAsString(options.model) ?? DEFAULT_MODEL
       if (!isTtsModel(model)) {
         throw new Error(`Unsupported model: ${model}. Run --help to see available models.`)
       }
 
-      const player = options.player ? String(options.player) : undefined
+      const player = optionAsString(options.player)
       if (player && !PLAYER_NAMES.includes(player as (typeof PLAYER_NAMES)[number])) {
         throw new Error(`Unsupported player: ${player}. Run --players to see supported players.`)
       }
 
-      const voice = String(options.voice ?? DEFAULT_VOICE_ID)
-      const key = options.apiKey ? String(options.apiKey) : undefined
+      const voice = optionAsString(options.voice) ?? DEFAULT_VOICE_ID
+      const key = optionAsString(options.apiKey)
       const report = Boolean(options.report || options.verbose)
       const debug = Boolean(options.debug)
       const logger = createLogger(debug)

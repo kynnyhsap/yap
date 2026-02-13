@@ -29,6 +29,8 @@ yap --players
 yap --report "show playback report"
 yap --help
 bun lint
+bun lint:fast
+bun lint:type-aware
 bun typecheck
 bun format
 ```

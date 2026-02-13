@@ -113,7 +113,7 @@ export async function playAudioStream(
     }
 
     bytes += chunk.byteLength
-    playerProcess.stdin.write(chunk)
+    await playerProcess.stdin.write(chunk)
     await playerProcess.stdin.flush()
   }
 
