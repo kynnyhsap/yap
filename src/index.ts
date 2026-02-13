@@ -1,3 +1,3 @@
-import { runCli } from "./cli";
+import { runCli } from './cli'
 
-await runCli(Bun.argv);
+await runCli(Bun.argv)
