@@ -49,7 +49,7 @@ Supported TTS models:
 - `eleven_multilingual_v2` (high quality)
 - `eleven_flash_v2_5` (ultra fast)
 - `eleven_flash_v2` (fast)
-- `eleven_turbo_v2_5` (fastest)
+- `eleven_turbo_v2_5` (fastest) **default**
 - `eleven_turbo_v2` (balanced)
 
 ## Benchmark snapshot
