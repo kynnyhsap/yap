@@ -28,6 +28,8 @@ yap --version
 yap --players
 yap --report "show playback report"
 yap --help
+bun lint
+bun format
 ```
 
 Default model: `eleven_turbo_v2_5`

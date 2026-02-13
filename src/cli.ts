@@ -3,7 +3,6 @@ import { goke } from 'goke'
 import { DEFAULT_MODEL, isTtsModel, MODEL_DESCRIPTIONS, TTS_MODELS, type TtsModel } from './config/models'
 import {
   COLOR_BAD,
-  COLOR_COMMAND,
   COLOR_GOOD,
   COLOR_HEADING,
   COLOR_META,
