@@ -23,6 +23,7 @@ yap "force a specific player" -p ffplay
 yap "use custom key" -k elv_xxx
 yap "test" --report
 yap "test" --debug
+echo "test" | yap
 yap --version
 yap --players
 yap --report "show playback report"

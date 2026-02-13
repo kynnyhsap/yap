@@ -137,6 +137,22 @@ function extractCost(headers: Headers) {
   return `${rawCost} credits`;
 }
 
+async function resolveInputText(text: string[]) {
+  const fromArgs = text.join(" ").trim();
+  if (fromArgs.length > 0) {
+    return fromArgs;
+  }
+
+  if (!process.stdin.isTTY) {
+    const fromStdin = (await new Response(Bun.stdin.stream()).text()).trim();
+    if (fromStdin.length > 0) {
+      return fromStdin;
+    }
+  }
+
+  throw new Error("No text provided. Pass text as args or pipe text via stdin.");
+}
+
 export async function runCli(argv: string[]) {
   const cli = goke("yap", {
     stdout: {
@@ -186,6 +202,7 @@ export async function runCli(argv: string[]) {
     .example('yap "force player" -p ffplay')
     .example('yap "test" --report')
     .example('yap "test" --debug')
+    .example('echo "test" | yap')
     .example("yap --version")
     .example("yap --players")
     .action(async (text: string[] = [], options: Record<string, unknown>) => {
@@ -194,9 +211,7 @@ export async function runCli(argv: string[]) {
         return;
       }
 
-      if (!text || text.length === 0) {
-        throw new Error("No text provided. Pass text or run --players.");
-      }
+      const joinedText = await resolveInputText(text);
 
       const model = String(options.model ?? DEFAULT_MODEL);
       if (!isTtsModel(model)) {
@@ -217,11 +232,10 @@ export async function runCli(argv: string[]) {
       const logger = createLogger(debug);
 
       logger.debug(
-        `input: model=${model} voice=${voice} player=${player ?? "auto"} text_length=${text.join(" ").trim().length}`,
+        `input: model=${model} voice=${voice} player=${player ?? "auto"} text_length=${joinedText.length}`,
       );
 
       const startedAt = performance.now();
-      const joinedText = text.join(" ").trim();
 
       const { stream, headers } = await ttsStream({
         text: joinedText,

@@ -49,7 +49,7 @@ export function colorizeHelp(output: string) {
 
       return `  ${COLOR_TERM(term)}  `;
     })
-    .replace(/^(yap .*)$/gm, (_, line: string) => `  ${colorExampleLine(line)}`)
+    .replace(/^((?:yap|echo) .*)$/gm, (_, line: string) => `  ${colorExampleLine(line)}`)
     .replace(/\((default:[^)]+)\)/g, (_, text: string) => `(${COLOR_META(text)})`)
     .replace(/\((choices:[^)]+)\)/g, (_, text: string) => `(${COLOR_META(text)})`);
 }
